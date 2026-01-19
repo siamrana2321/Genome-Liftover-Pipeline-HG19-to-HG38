@@ -48,6 +48,7 @@ liftover_project/
 └── README.md
 ```
 ## 🧾 Final Output Schema
+```text
 Hugo_Symbol
 Entrez_Gene_Id
 NCBI_Build
@@ -75,8 +76,9 @@ Seq_Tech
 Note :
 If a column exists → its data is preserved
 If a column is missing or empty → it is created and filled with "-"
-
+```
 ## 🛠️ Requirements
+```text
 Operating System
 
 Windows 10 / 11 with WSL2
@@ -86,3 +88,4 @@ Python ≥ 3.10
 CrossMap
 pandas
 PyYAML
+```
