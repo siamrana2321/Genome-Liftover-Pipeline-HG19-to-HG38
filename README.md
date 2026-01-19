@@ -215,6 +215,7 @@ The validation script is designed to detect silent errors that may occur during 
   - A sample of problematic records for manual inspection
 
   Validation thresholds (e.g., maximum allowed mismatch rate) are configurable directly in validate.py.
+
 ---
 
 ## Output
