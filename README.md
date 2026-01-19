@@ -1,91 +1,184 @@
 # Genome Liftover Pipeline GRCh37 → GRCh38 (cBioPortal / MAF)
 
-## 📌 Overview
+## Overview
 
-This project implements a **fully automated, reproducible pipeline** to lift genomic mutation data from **GRCh37 (hg19)** to **GRCh38 (hg38)** using **CrossMap** within **WSL (Windows Subsystem for Linux)**.
+This project implements a **fully automated, reproducible pipeline** to convert cancer mutation data from **GRCh37 (hg19)** to **GRCh38 (hg38)** using **CrossMap**.  
+It is designed for **cBioPortal / MAF-like mutation files** and includes:
 
-The pipeline is designed for **cBioPortal / MAF-like mutation files** and ensures:
-
-- Correct coordinate liftover (GRCh37 → GRCh38)
-- Biological correctness through allele-aware processing
+- Coordinate liftover (GRCh37 → GRCh38)
+- Allele-aware validation using the GRCh38 reference genome
 - Recalculation of allele-derived fields (e.g., `Variant_Type`)
-- Standardization to a fixed, predefined schema
-- Dual-format output for both computational and reporting use (`.txt` and `.csv`)
-- Safe handling of missing annotations
+- Schema standardization to a fixed set of columns
+- Automatic handling of missing columns and values
+- Dual-format output for Windows users: **TXT (tab-delimited)** and **CSV**
+- Clear logging and unmapped-variant tracking
 
-This repository is suitable for **research, clinical bioinformatics, and production-grade data processing**.
-
----
-
-## 🧬 Key Features
-
-- ✅ Uses **CrossMap (maf mode)** for accurate liftover
-- ✅ Validates and recomputes `Variant_Type` after liftover
-- ✅ Preserves only required columns in final output
-- ✅ Automatically adds missing columns with placeholder values (`-`)
-- ✅ Outputs:
-  - Tab-delimited `.txt` (for bioinformatics tools)
-  - CSV `.csv` (for Excel, Power BI, reporting)
-- ✅ Compatible with **cBioPortal** ingestion
-- ✅ Designed to run on **Windows via WSL**
+The pipeline runs on **Windows using WSL (Ubuntu)** and is suitable for research, production, and audit-reviewed environments.
 
 ---
 
-## 📂 Project Structure
+## Key Features
 
-```text
-liftover_project/
-├── liftover.py              # Main pipeline script
-├── config.yaml              # Configuration file
-├── resources/               # Reference files
-│   ├── hg19ToHg38.over.chain.gz
-│   └── GRCh38.primary_assembly.genome.fa
-├── data/
-│   ├── input/               # Input GRCh37 MAF-like .txt files
-│   ├── output/              # Internal GRCh38 outputs
-│   └── unmap/               # Unmapped variants
-├── logs/                    # CrossMap logs
-└── README.md
-```
-## 🧾 Final Output Schema
-```text
-Hugo_Symbol
-Entrez_Gene_Id
-NCBI_Build
-Chromosome
-Start_Position
-End_Position
-Consequence
-Variant_Classification
-Variant_Type
-Reference_Allele
-Tumor_Seq_Allele1
-Tumor_Seq_Allele2
-Tumor_Sample_Barcode
-Transcript_ID
-RefSeq
-Gene
-Annotation_Status
-Filter
-Tissue
-Cancer_Type
-PMID
-Study
-Seq_Tech
+- Uses UCSC hg19→hg38 chain files via CrossMap
+- Preserves biological correctness (allele-aware liftover)
+- Recomputes `Variant_Type` according to MAF specification
+- Outputs only a standardized, documented column set
+- Missing columns are auto-filled with `-`
+- Generates both `.txt` and `.csv` outputs for downstream use
+- Compatible with cBioPortal and downstream annotation tools
 
-Note :
-If a column exists → its data is preserved
-If a column is missing or empty → it is created and filled with "-"
-```
-## 🛠️ Requirements
-```text
-Operating System
+---
 
-Windows 10 / 11 with WSL2
-Software (inside WSL)
-Ubuntu (recommended)
-Python ≥ 3.10
-CrossMap
-pandas
-PyYAML
+## Final Output Schema
+
+Both TXT and CSV outputs contain **only** the following columns (in this order):
+
+Hugo_Symbol  
+Entrez_Gene_Id  
+NCBI_Build  
+Chromosome  
+Start_Position  
+End_Position  
+Consequence  
+Variant_Classification  
+Variant_Type  
+Reference_Allele  
+Tumor_Seq_Allele1  
+Tumor_Seq_Allele2  
+Tumor_Sample_Barcode  
+Transcript_ID  
+RefSeq  
+Gene  
+Annotation_Status  
+Filter  
+Tissue  
+Cancer_Type  
+PMID  
+Study  
+Seq_Tech  
+
+Missing data or missing columns are filled with `-`.
+
+---
+
+## System Requirements
+
+- Windows 10 / 11
+- Windows Subsystem for Linux (WSL2 recommended)
+- Ubuntu (via WSL)
+- Python 3.10+
+- CrossMap
+- samtools
+- pandas
+- pyfaidx
+
+---
+
+## Installation (From Scratch)
+
+### 1. Install WSL (PowerShell, Admin)
+```powershell
+wsl --install
 ```
+
+---
+
+### 2. Install Linux dependencies
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y wget gzip build-essential python3-venv python3-pip samtools
+```
+
+---
+
+### 3. Create Python environment
+```bash
+python3 -m venv crossmap_env
+source crossmap_env/bin/activate
+pip install --upgrade pip
+pip install CrossMap pandas pyfaidx pyyaml
+```
+
+---
+
+### 4. Create project structure
+```bash
+mkdir -p liftover_project/{resources,data/input,data/output,data/unmap,logs}
+cd liftover_project
+```
+
+---
+
+### 5. Download reference files
+
+UCSC chain file (hg19 → hg38):
+```bash
+wget -P resources/ https://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz
+```
+
+GRCh38 FASTA (GENCODE):
+Download from https://www.gencodegenes.org/human/
+
+Then:
+```bash
+samtools faidx resources/GRCh38.primary_assembly.genome.fa
+```
+
+---
+
+### 6. Configure project (`config.yaml`)
+
+```yaml
+reference:
+  build: GRCh38
+
+chromosomes:
+  style: s
+
+windows:
+  output_dir: /mnt/d/Filtered_CBiosportal_Output
+```
+
+---
+
+## Running the Pipeline
+
+### Copy input file
+```bash
+cp "/mnt/d/Path/To/Input/data_mutations.txt" liftover_project/data/input/
+```
+
+### Run liftover
+```bash
+cd liftover_project
+source ~/crossmap_env/bin/activate
+python liftover.py
+```
+
+---
+
+## Output
+
+WSL:
+- data/output/
+- data/unmap/
+- logs/
+
+Windows:
+- *.GRCh38.txt
+- *.GRCh38.csv
+
+---
+
+## Notes
+
+- Variant_Type is recomputed post-liftover
+- Schema is strictly enforced
+- Missing values are represented as `-`
+
+---
+
+## Author
+
+Mohammad Siam Ahmed Rana
+
