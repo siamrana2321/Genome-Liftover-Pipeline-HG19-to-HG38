@@ -5,4 +5,4 @@ chromosomes:
   style: s   # s = 1,2,3,X | a = chr1,chr2
 
 windows:
-  output_dir: /mnt/d/Mohammad_Siam_Ahmed_Rana/Project_Files/liftovers/output
+  output_dir: /mnt/d/Filtered_CBiosportal_Output
