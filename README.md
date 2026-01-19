@@ -155,36 +155,60 @@ cp "/mnt/d/Path/To/Input/data_mutations.txt" liftover_project/data/input/
 cd liftover_project
 source ~/crossmap_env/bin/activate
 python liftover.py
+python validate.py
 ```
 
 ---
 
 ## Validation and Quality Control
 
-The pipeline performs **post-liftover validation** to ensure that the output is biologically and structurally correct.
+After liftover and post-processing, the project provides a dedicated validation step implemented in `validate.py` to verify the biological and structural correctness of GRCh38 outputs.
 
-### Validation checks include:
+The validation script is designed to detect silent errors that may occur during coordinate liftover or allele normalization.
 
-- **Schema validation**
-  - Ensures all required output columns are present
-  - Adds missing columns with `-` placeholders
-  - Enforces strict column ordering
+### Validation checks performed:
 
-- **Build verification**
-  - Confirms `NCBI_Build` is set to `GRCh38`
+- **Required column checks**
+The validator confirms the presence of essential MAF/cBioPortal fields, including:
 
-- **Allele consistency checks**
-  - Recomputes `Variant_Type` from `Reference_Allele` and `Tumor_Seq_Allele2`
-  - Ensures allele-derived fields are consistent with GRCh38 coordinates
+  - Chromosome
+  - Start_Position
+  - End_Position
+  - Reference_Allele
+  - Tumor_Seq_Allele2
+  - NCBI_Build
 
-- **Unmapped variant tracking**
-  - Variants that cannot be lifted are written to `data/unmap/`
+Files missing required columns are flagged immediately.
 
-- **Logging**
-  - All liftover and validation steps are logged in `logs/`
+- **Reference build verification**
+Each record is checked to ensure that `NCBI_Build` corresponds to GRCh38.
 
-These checks prevent silent data corruption and ensure compatibility with downstream tools such as cBioPortal.
+- **Reference allele verification against FASTA**
+For each variant:
+  - The reference allele is fetched directly from the GRCh38 FASTA
+  - The fetched sequence is compared against `Reference_Allele`
+  - Mismatches are recorded and categorized
 
+This ensures that lifted coordinates remain biologically consistent with the target genome.
+
+- **SNV vs INDEL mismatch classification**
+Reference mismatches are further classified into:
+  - SNV reference mismatches
+  - INDEL reference mismatches
+
+This helps distinguish systematic coordinate errors from localized alignment issues.
+
+- **Chromosome availability checks**
+Variants mapping to chromosomes not present in the reference FASTA are detected and reported.
+
+- **Detailed reporting and audit trail**
+For each processed file, the validator generates:
+
+- A per-file JSON report in logs/
+- An aggregated validation_summary.json
+- A sample of problematic records for manual inspection
+
+Validation thresholds (e.g., maximum allowed mismatch rate) are configurable directly in validate.py.
 ---
 
 ## Output
