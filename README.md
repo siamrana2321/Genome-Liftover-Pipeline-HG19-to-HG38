@@ -168,8 +168,9 @@ The validation script is designed to detect silent errors that may occur during 
 
 ### Validation checks performed:
 
-- **Required column checks**
-The validator confirms the presence of essential MAF/cBioPortal fields, including:
+1. **Required column checks**
+
+  The validator confirms the presence of essential MAF/cBioPortal fields, including:
 
   - Chromosome
   - Start_Position
@@ -178,37 +179,40 @@ The validator confirms the presence of essential MAF/cBioPortal fields, includin
   - Tumor_Seq_Allele2
   - NCBI_Build
 
-Files missing required columns are flagged immediately.
+  Files missing required columns are flagged immediately.
 
-- **Reference build verification**
-Each record is checked to ensure that `NCBI_Build` corresponds to GRCh38.
+2. **Reference build verification**
 
-- **Reference allele verification against FASTA**
-For each variant:
+  Each record is checked to ensure that `NCBI_Build` corresponds to GRCh38.
+
+3. **Reference allele verification against FASTA**
+
+  For each variant:
   - The reference allele is fetched directly from the GRCh38 FASTA
   - The fetched sequence is compared against `Reference_Allele`
   - Mismatches are recorded and categorized
 
-This ensures that lifted coordinates remain biologically consistent with the target genome.
+  This ensures that lifted coordinates remain biologically consistent with the target genome.
 
-- **SNV vs INDEL mismatch classification**
-Reference mismatches are further classified into:
+4. **SNV vs INDEL mismatch classification**
+
+  Reference mismatches are further classified into:
   - SNV reference mismatches
   - INDEL reference mismatches
 
-This helps distinguish systematic coordinate errors from localized alignment issues.
+  This helps distinguish systematic coordinate errors from localized alignment issues.
 
-- **Chromosome availability checks**
-Variants mapping to chromosomes not present in the reference FASTA are detected and reported.
+5. **Chromosome availability checks**
+  Variants mapping to chromosomes not present in the reference FASTA are detected and reported.
 
-- **Detailed reporting and audit trail**
-For each processed file, the validator generates:
+6. **Detailed reporting and audit trail**
+  For each processed file, the validator generates:
 
-- A per-file JSON report in logs/
-- An aggregated validation_summary.json
-- A sample of problematic records for manual inspection
+  - A per-file JSON report in logs/
+  - An aggregated validation_summary.json
+  - A sample of problematic records for manual inspection
 
-Validation thresholds (e.g., maximum allowed mismatch rate) are configurable directly in validate.py.
+  Validation thresholds (e.g., maximum allowed mismatch rate) are configurable directly in validate.py.
 ---
 
 ## Output
