@@ -46,7 +46,7 @@ liftover_project/
 │   └── unmap/               # Unmapped variants
 ├── logs/                    # CrossMap logs
 └── README.md
-
+```
 ## 🧾 Final Output Schema
 Hugo_Symbol
 Entrez_Gene_Id
