@@ -168,7 +168,7 @@ The validation script is designed to detect silent errors that may occur during 
 
 ### Validation checks performed:
 
-1. **Required column checks**
+**1. Required column checks**
 
   The validator confirms the presence of essential MAF/cBioPortal fields, including:
 
@@ -181,11 +181,11 @@ The validation script is designed to detect silent errors that may occur during 
 
   Files missing required columns are flagged immediately.
 
-2. **Reference build verification**
+**2. Reference build verification**
 
   Each record is checked to ensure that `NCBI_Build` corresponds to GRCh38.
 
-3. **Reference allele verification against FASTA**
+**3. Reference allele verification against FASTA**
 
   For each variant:
   - The reference allele is fetched directly from the GRCh38 FASTA
@@ -194,7 +194,7 @@ The validation script is designed to detect silent errors that may occur during 
 
   This ensures that lifted coordinates remain biologically consistent with the target genome.
 
-4. **SNV vs INDEL mismatch classification**
+**4. SNV vs INDEL mismatch classification**
 
   Reference mismatches are further classified into:
   - SNV reference mismatches
@@ -202,10 +202,10 @@ The validation script is designed to detect silent errors that may occur during 
 
   This helps distinguish systematic coordinate errors from localized alignment issues.
 
-5. **Chromosome availability checks**
+**5. Chromosome availability checks**
   Variants mapping to chromosomes not present in the reference FASTA are detected and reported.
 
-6. **Detailed reporting and audit trail**
+**6. Detailed reporting and audit trail**
   For each processed file, the validator generates:
 
   - A per-file JSON report in logs/
