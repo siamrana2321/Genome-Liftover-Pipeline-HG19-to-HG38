@@ -11,6 +11,7 @@ It is designed for **cBioPortal / MAF-like mutation files** and includes:
 - Schema standardization to a fixed set of columns
 - Automatic handling of missing columns and values
 - Dual-format output for Windows users: **TXT (tab-delimited)** and **CSV**
+- Built-in validation to ensure biological correctness
 - Clear logging and unmapped-variant tracking
 
 The pipeline runs on **Windows using WSL (Ubuntu)** and is suitable for research, production, and audit-reviewed environments.
@@ -22,9 +23,10 @@ The pipeline runs on **Windows using WSL (Ubuntu)** and is suitable for research
 - Uses UCSC hg19→hg38 chain files via CrossMap
 - Preserves biological correctness (allele-aware liftover)
 - Recomputes `Variant_Type` according to MAF specification
-- Outputs only a standardized, documented column set
-- Missing columns are auto-filled with `-`
+- Enforces a fixed, documented output schema
+- Automatically adds missing columns with placeholder values (`-`)
 - Generates both `.txt` and `.csv` outputs for downstream use
+- Includes post-liftover validation checks
 - Compatible with cBioPortal and downstream annotation tools
 
 ---
@@ -157,28 +159,81 @@ python liftover.py
 
 ---
 
-## Output
+## Validation and Quality Control
 
-WSL:
-- data/output/
-- data/unmap/
-- logs/
+The pipeline performs **post-liftover validation** to ensure that the output is biologically and structurally correct.
 
-Windows:
-- *.GRCh38.txt
-- *.GRCh38.csv
+### Validation checks include:
+
+- **Schema validation**
+  - Ensures all required output columns are present
+  - Adds missing columns with `-` placeholders
+  - Enforces strict column ordering
+
+- **Build verification**
+  - Confirms `NCBI_Build` is set to `GRCh38`
+
+- **Allele consistency checks**
+  - Recomputes `Variant_Type` from `Reference_Allele` and `Tumor_Seq_Allele2`
+  - Ensures allele-derived fields are consistent with GRCh38 coordinates
+
+- **Unmapped variant tracking**
+  - Variants that cannot be lifted are written to `data/unmap/`
+
+- **Logging**
+  - All liftover and validation steps are logged in `logs/`
+
+These checks prevent silent data corruption and ensure compatibility with downstream tools such as cBioPortal.
 
 ---
 
-## Notes
+## Output
 
-- Variant_Type is recomputed post-liftover
-- Schema is strictly enforced
-- Missing values are represented as `-`
+### Inside WSL
+- `data/output/` → GRCh38 tab-delimited files
+- `data/unmap/` → unmapped variants
+- `logs/` → execution logs
+
+### Windows Output
+```
+*.GRCh38.txt
+*.GRCh38.csv
+```
+
+---
+
+## Notes on Variant_Type
+
+`Variant_Type` is an **allele-derived field** and is not preserved blindly.  
+After liftover, it is recomputed according to the MAF specification:
+
+- `DEL` – deletion
+- `INS` – insertion
+- `SNP` – single-nucleotide polymorphism
+- `ONP` – multi-nucleotide polymorphism
+
+This ensures biological correctness and downstream compatibility.
+
+---
+
+## Best Practices
+
+- Always inspect `data/unmap/` after a run
+- Avoid opening raw MAF files in Excel for validation
+- Use TSV-aware tools (`awk`, `pandas`, `cut`) for inspection
+- Keep reference FASTA and chain versions documented
+
+---
+
+## License
+
+This project is intended for academic and research use.
+Please ensure compliance with data governance and privacy policies.
 
 ---
 
 ## Author
 
 Mohammad Siam Ahmed Rana
+
 
