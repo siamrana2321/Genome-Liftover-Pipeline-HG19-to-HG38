@@ -203,9 +203,11 @@ The validation script is designed to detect silent errors that may occur during 
   This helps distinguish systematic coordinate errors from localized alignment issues.
 
 **5. Chromosome availability checks**
+  
   Variants mapping to chromosomes not present in the reference FASTA are detected and reported.
 
 **6. Detailed reporting and audit trail**
+  
   For each processed file, the validator generates:
 
   - A per-file JSON report in logs/
